@@ -17,6 +17,6 @@ mongoose
   .catch((err) => {
     console.log(err);
   });
-app.listen(port, () => {
+app.listen(process.env.PORT || port, () => {
   console.log(`Listening on port ${port}`);
 });
