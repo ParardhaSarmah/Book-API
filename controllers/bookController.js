@@ -16,7 +16,7 @@ exports.getBookDetails = async (req, res) => {
         })
         .catch((err) => {
           console.log(`Errors found : ${err}`);
-          res.status(404).json({
+          res.status(500).json({
             status: false,
             details: null,
           });
@@ -29,7 +29,7 @@ exports.getBookDetails = async (req, res) => {
     }
   } catch (error) {
     console.log(error);
-    res.status(404).json({
+    res.status(500).json({
       status: false,
       details: null,
     });
@@ -39,9 +39,9 @@ exports.ratingCheck = async (req, res) => {
   let username = req.params.username,
     bookName = req.params.book;
   console.log(username, book);
+  const bookList = await book.find();
   try {
     const bookData = await book.findOne({ name: bookName });
-    const bookList = await book.find();
     console.log(bookData);
     if (bookData !== null) {
       bookData
@@ -64,7 +64,7 @@ exports.ratingCheck = async (req, res) => {
         })
         .catch((err) => {
           console.log(`Errors found : ${err}`);
-          res.status(404).json({
+          res.status(500).json({
             status: false,
             rating: null,
             bookList: bookList,
@@ -78,7 +78,7 @@ exports.ratingCheck = async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(404).json({
+    res.status(500).json({
       status: false,
       rating: null,
       bookList: bookList,
@@ -92,35 +92,41 @@ exports.rateBook = async (req, res) => {
   console.log(username, book, rate);
   try {
     const newBook = await book.findOne({ name: bookName });
-    console.log("newbook :" + newBook.rating);
-    newBook.rating =
-      (newBook.rating * newBook.ratersNumber + rate) /
-      (newBook.ratersNumber + 1);
-    newBook.raters.push(username);
-    newBook.ratersNumber += 1;
-    // IF WE NEED TO STOP SAME USER FROM RATING MULTIPLE TIMES
-    // if (!newBook.raters.includes(username)) {
-    //   newBook.raters.push(username);
-    //   newBook.ratersNumber += 1;
-    // }
-    newBook
-      .validate()
-      .then((msg) => {
-        console.log("No errors");
-        newBook.save();
-        res.status(200).json({
-          status: true,
+    // console.log("newbook :" + newBook.rating);
+    if (newBook !== null) {
+      newBook.rating =
+        (newBook.rating * newBook.ratersNumber + rate) /
+        (newBook.ratersNumber + 1);
+      newBook.raters.push(username);
+      newBook.ratersNumber += 1;
+      // IF WE NEED TO STOP SAME USER FROM RATING MULTIPLE TIMES
+      // if (!newBook.raters.includes(username)) {
+      //   newBook.raters.push(username);
+      //   newBook.ratersNumber += 1;
+      // }
+      newBook
+        .validate()
+        .then((msg) => {
+          console.log("No errors");
+          newBook.save();
+          res.status(200).json({
+            status: true,
+          });
+        })
+        .catch((err) => {
+          console.log(`Errors found : ${err}`);
+          res.status(500).json({
+            status: false,
+          });
         });
-      })
-      .catch((err) => {
-        console.log(`Errors found : ${err}`);
-        res.status(400).json({
-          status: false,
-        });
+    } else {
+      res.status(404).json({
+        status: false,
       });
+    }
   } catch (error) {
     console.log(error);
-    res.status(404).json({
+    res.status(500).json({
       status: false,
     });
   }
